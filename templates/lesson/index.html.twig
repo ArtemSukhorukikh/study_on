@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Список уроков{% endblock %}
+
+{% block body %}
+    <h1>Список уроков</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Номер</th>
+                <th>Имя</th>
+                <th>Содержимое</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for lesson in lessons %}
+            <tr>
+                <td>{{ lesson.number }}</td>
+                <td><a href="{{ path('app_lesson_show', {'id': lesson.id}) }}">{{ lesson.name }}</a></td>
+                <td>{{ lesson.content }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">Нет уроков/td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
