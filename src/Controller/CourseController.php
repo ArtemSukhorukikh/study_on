@@ -30,14 +30,14 @@ class CourseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ( $courseRepository->findOneBy(['code'=>$course->getCode()])) {
+            if ($courseRepository->findOneBy(['code' => $course->getCode()])) {
                 return $this->renderForm('course/new.html.twig', [
                     'course' => $course,
                     'form' => $form,
                 ]);
             }
             $courseRepository->add($course);
-            return $this->redirectToRoute('app_course_show', ['id'=>$course->getId()], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
         }
 
         return $this->renderForm('course/new.html.twig', [
@@ -49,7 +49,7 @@ class CourseController extends AbstractController
     #[Route('/{id}', name: 'app_course_show', methods: ['GET'])]
     public function show(Course $course, LessonRepository $lessonRepository): Response
     {
-        $lessonsCourse = $lessonRepository->findBy(['course' => $course->getId()], ['number'=>'ASC']);
+        $lessonsCourse = $lessonRepository->findBy(['course' => $course->getId()], ['number' => 'ASC']);
         return $this->render('course/show.html.twig', [
             'course' => $course,
             'lessons' => $lessonsCourse,
@@ -64,7 +64,7 @@ class CourseController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $courseRepository->add($course);
-            return $this->redirectToRoute('app_course_show', ['id'=>$course->getId()], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
         }
 
         return $this->renderForm('course/edit.html.twig', [
@@ -76,7 +76,7 @@ class CourseController extends AbstractController
     #[Route('/{id}', name: 'app_course_delete', methods: ['POST'])]
     public function delete(Request $request, Course $course, CourseRepository $courseRepository): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$course->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $course->getId(), $request->request->get('_token'))) {
             $courseRepository->remove($course);
         }
 
