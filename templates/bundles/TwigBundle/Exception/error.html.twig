@@ -1,0 +1,10 @@
+{# templates/bundles/TwigBundle/Exception/error404.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Ошибка {{ status_code }}</h1>
+
+    <p>
+        Тело ошибка: {{ status_text }}<a href="{{ path('app_home_page') }}"> Вернуться на главную страницу.</a>.
+    </p>
+{% endblock %}
