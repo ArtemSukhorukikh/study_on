@@ -6,7 +6,12 @@
  */
 
 // any CSS you import will output into a single css file (app.scss in this case)
-import './styles/app.scss';
+import Alert from 'bootstrap/js/dist/alert';
 
+// or, specify which plugins you need:
+import { Tooltip, Toast, Popover } from 'bootstrap';
+import './styles/app.scss';
+import 'bootstrap';
 // start the Stimulus application
 import '../node_modules/bootstrap/scss/bootstrap.scss';
+

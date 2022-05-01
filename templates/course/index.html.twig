@@ -3,28 +3,24 @@
 {% block title %}Список курсов{% endblock %}
 
 {% block body %}
-    <h1>Список курсов</h1>
+    <div class="container-sm">
+        <h1>Список курсов</h1>
+        <div class="row row-cols-2">
+            {% for course in courses %}
+                <div class="col mb-2">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ course.name }}</h5>
+                            <p class="card-text">{{ course.description }}</p>
+                            <a class="card-link" href="{{ path('app_course_show', {'id': course.id}) }}">Пройти</a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <h6>Нет записей</h6>
+            {% endfor %}
+        </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Название</th>
-                <th>Описание</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for course in courses %}
-            <tr>
-                <td><a href="{{ path('app_course_show', {'id': course.id}) }}">{{ course.name }}</a></td>
-                <td>{{ course.description }}</td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">Нет записей</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_course_new') }}">Создать новый курс</a>
+        <a class="btn mt-3 btn-outline-secondary" href="{{ path('app_course_new') }}">Создать новый курс</a>
+    </div>
 {% endblock %}
