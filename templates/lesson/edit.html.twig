@@ -7,7 +7,7 @@
 
     {{ include('lesson/_form.html.twig', {'button_label': 'Update'}) }}
 
-    <a href="{{ path('app_course_index') }}">Вернуться к списку курсов</a>
+    <a class="btn btn-outline-secondary mt-3" href="{{ path('app_course_index') }}">Вернуться к списку курсов</a>
 
     {{ include('lesson/_delete_form.html.twig') }}
 {% endblock %}
