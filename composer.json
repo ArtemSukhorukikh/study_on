@@ -5,11 +5,11 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.0.2",
-        "ext-tokenizer": "*",
-        "ext-xmlwriter": "*",
-        "ext-simplexml": "*",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-simplexml": "*",
+        "ext-tokenizer": "*",
+        "ext-xmlwriter": "*",
         "doctrine/annotations": "^1.0",
         "doctrine/doctrine-bundle": "^2.6",
         "doctrine/doctrine-migrations-bundle": "^3.2",
@@ -43,6 +43,7 @@
         "symfony/twig-bundle": "6.0.*",
         "symfony/validator": "6.0.*",
         "symfony/web-link": "6.0.*",
+        "symfony/webpack-encore-bundle": "^1.14",
         "symfony/yaml": "6.0.*",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/twig": "^2.12|^3.0"
