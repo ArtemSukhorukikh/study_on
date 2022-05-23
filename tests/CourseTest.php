@@ -32,7 +32,11 @@ class CourseTest extends AbstractTest
                 'course[description]' => 'Курс по HTML',
             ]
         );
-        $this->assertResponseRedirect();
+        $crawler = $client->followRedirect();
+        $courseName = $crawler->filter('.course-name')->text();
+        self::assertEquals('HTML-курс', $courseName);
+        $courseDesq = $crawler->filter('.course-description')->text();
+        self::assertEquals('Курс по HTML', $courseDesq);
     }
 
     public function testCountCourses(): void
@@ -75,6 +79,8 @@ class CourseTest extends AbstractTest
     {
         $client = AbstractTest::getClient();
         $crawler = $client->request('GET', '/courses/new');
+        $courseRepository = self::getEntityManager()->getRepository(Course::class);
+        $coutseCount = $this->count($courseRepository->findAll());
         $buttonCrawlerNode = $crawler->selectButton('Сохранить');
         $form = $buttonCrawlerNode->form();
         $client->submit(
@@ -86,6 +92,8 @@ class CourseTest extends AbstractTest
             ]
         );
         $this->assertResponseRedirect();
+        $coutseCountNew = $this->count($courseRepository->findAll());
+        self::assertEquals($coutseCount, $coutseCountNew);
     }
 
     public function testValidationCourse(): void
@@ -94,6 +102,8 @@ class CourseTest extends AbstractTest
         $crawler = $client->request('GET', '/courses/new');
         $buttonCrawlerNode = $crawler->selectButton('Сохранить');
         $form = $buttonCrawlerNode->form();
+        $courseRepository = self::getEntityManager()->getRepository(Course::class);
+        $coutseCount = $this->count($courseRepository->findAll());
         $client->submit(
             $form,
             [
@@ -113,6 +123,8 @@ class CourseTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $coutseCountNew = $this->count($courseRepository->findAll());
+        self::assertEquals($coutseCount, $coutseCountNew);
         $client->submit(
             $form,
             [
@@ -132,12 +144,16 @@ class CourseTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $coutseCountNew = $this->count($courseRepository->findAll());
+        self::assertEquals($coutseCount, $coutseCountNew);
     }
 
     public function testWithBlankFieldsCourse(): void
     {
         $client = AbstractTest::getClient();
         $crawler = $client->request('GET', '/courses/new');
+        $courseRepository = self::getEntityManager()->getRepository(Course::class);
+        $coutseCount = $this->count($courseRepository->findAll());
         $buttonCrawlerNode = $crawler->selectButton('Сохранить');
         $form = $buttonCrawlerNode->form();
         $client->submit(
@@ -149,6 +165,8 @@ class CourseTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $coutseCountNew = $this->count($courseRepository->findAll());
+        self::assertEquals($coutseCount, $coutseCountNew);
         $client->submit(
             $form,
             [
@@ -158,6 +176,8 @@ class CourseTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $coutseCountNew = $this->count($courseRepository->findAll());
+        self::assertEquals($coutseCount, $coutseCountNew);
         $client->submit(
             $form,
             [
@@ -167,6 +187,8 @@ class CourseTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $coutseCountNew = $this->count($courseRepository->findAll());
+        self::assertEquals($coutseCount, $coutseCountNew);
     }
 
     public function testDeleteCourse(): void

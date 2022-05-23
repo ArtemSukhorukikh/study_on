@@ -12,7 +12,10 @@ class LessonTest extends AbstractTest
     {
         $client = AbstractTest::getClient();
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
-        $crawler = $client->request('GET', '/lessons/new/' . $courseRepository->findAll()[0]->getId());
+        $lesssomRepository = self::getEntityManager()->getRepository(Lesson::class);
+        $course = $courseRepository->findOneBy([]);
+        $courseCount = count($course->getLessons());
+        $crawler = $client->request('GET', '/lessons/new/' . $course->getId());
         $this->assertResponseOk();
         $buttonCrawlerNode = $crawler->selectButton('Сохранить');
         $form = $buttonCrawlerNode->form();
@@ -24,7 +27,9 @@ class LessonTest extends AbstractTest
                 'lesson[number]' => 5,
             ]
         );
-        $this->assertResponseRedirect();
+        $countLessons = count($lesssomRepository->findBy(['course' => $course]));
+        self::assertEquals('ТестовоеНазвание', $lesssomRepository->findOneBy(['name' => 'ТестовоеНазвание']));
+        self::assertEquals($courseCount + 1, $countLessons);
     }
 
     public function testEditLesson(): void
@@ -44,22 +49,29 @@ class LessonTest extends AbstractTest
             ]
         );
         $this->assertResponseRedirect();
+        self::assertEquals('ТестовоеНазвание', $lessonRepository->findOneBy(['name' => 'ТестовоеНазвание']));
     }
 
     public function testDeleteLesson(): void
     {
         $client = AbstractTest::getClient();
         $lessonRepository = self::getEntityManager()->getRepository(Lesson::class);
+        $countOld = count($lessonRepository->findAll());
         $crawler = $client->request('GET', '/lessons/' . $lessonRepository->findAll()[0]->getId());
         $this->assertResponseOk();
         $client->submitForm('lesson-delete');
         $this->assertResponseRedirect();
+        self::getEntityManager()->clear();
+        $countNew = count($lessonRepository->findAll());
+        self::assertEquals($countOld - 1, $countNew);
     }
 
     public function testEmptyLesson(): void
     {
         $client = AbstractTest::getClient();
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
+        $lessonRepository = self::getEntityManager()->getRepository(Lesson::class);
+        $countOld = $this->count($lessonRepository->findAll());
         $crawler = $client->request('GET', '/lessons/new/' . $courseRepository->findAll()[0]->getId());
         $this->assertResponseOk();
         $buttonCrawlerNode = $crawler->selectButton('Сохранить');
@@ -73,6 +85,8 @@ class LessonTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $countNew = $this->count($lessonRepository->findAll());
+        self::assertEquals($countOld, $countNew);
         $client->submit(
             $form,
             [
@@ -82,6 +96,8 @@ class LessonTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $countNew = $this->count($lessonRepository->findAll());
+        self::assertEquals($countOld, $countNew);
         $client->submit(
             $form,
             [
@@ -91,12 +107,16 @@ class LessonTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $countNew = $this->count($lessonRepository->findAll());
+        self::assertEquals($countOld, $countNew);
     }
 
     public function testValidateLesson(): void
     {
         $client = AbstractTest::getClient();
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
+        $lessonRepository = self::getEntityManager()->getRepository(Lesson::class);
+        $countOld = $this->count($lessonRepository->findAll());
         $crawler = $client->request('GET', '/lessons/new/' . $courseRepository->findAll()[0]->getId());
         $this->assertResponseOk();
         $buttonCrawlerNode = $crawler->selectButton('Сохранить');
@@ -123,6 +143,8 @@ class LessonTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $countNew = $this->count($lessonRepository->findAll());
+        self::assertEquals($countOld, $countNew);
         $client->submit(
             $form,
             [
@@ -132,6 +154,8 @@ class LessonTest extends AbstractTest
             ]
         );
         $this->assertResponseCode(422);
+        $countNew = $this->count($lessonRepository->findAll());
+        self::assertEquals($countOld, $countNew);
     }
 
     public function getFixtures(): array
