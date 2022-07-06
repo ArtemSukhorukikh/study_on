@@ -17,6 +17,16 @@
         <nav class="navbar navbar-light bg-light">
             <div class="container-fluid">
                 <a class="navbar-brand mx-5" href={{ path('app_home_page')}}>Study-on</a>
+                <div class="d-flex" role="search">
+                    {% if app.user %}
+                        <a class="btn btn-primary mx-3" href="{{ path('app_profile')}}">Профиль</a>
+                        <a href="{{ path('app_logout') }}" class="btn btn-outline-success" >Выход</a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-outline-success mx-3" >Вход</a>
+                        <a class="btn btn-outline-success" >Регистрация</a>
+                    {% endif %}
+
+                </div>
             </div>
         </nav>
         <div class="container-fluid">
