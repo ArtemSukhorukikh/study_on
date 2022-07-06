@@ -88,6 +88,40 @@ class BillingClient
         return $userCurrent;
     }
 
+    public function register($data) 
+    {
+        $ch = curl_init($_ENV['BILLING_ADDRES'] . 'api/v1/register');
+        $options = [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+            ]
+        ];
+        curl_setopt_array($ch, $options);
+        $res = curl_exec($ch);
+
+
+        if ($res === false) {
+            throw new BillingUnavailableException('Ошибка со стороны сервера');
+        }
+        curl_close($ch);
+        $resJSON = json_decode($res, true);
+        if (isset($resJSON['errors'])) {
+            throw new BillingUnavailableException("Проверьте правильность введных вами данных");
+        }
+
+
+        $userAuthDTO = $this->serializer->deserialize($res, UserAuthDto::class, "json");
+        $user = new User();
+        $user->setApiToken($userAuthDTO->token);
+        $decodedJWT = $this->getJWT($userAuthDTO->token);
+        $user->setEmail($decodedJWT['email']);
+        $user->setRoles($decodedJWT['roles']);
+        return $user;
+    }
+
     public function getJWT($token)
     {
         $parts = explode('.', $token);
