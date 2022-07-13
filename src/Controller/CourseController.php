@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\DTO\CourseNewDto;
 use App\Entity\Course;
+use App\Exception\BillingUnavailableException;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Repository\LessonRepository;
@@ -67,7 +69,7 @@ class CourseController extends AbstractController
     }
 
     #[Route('/new', name: 'app_course_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, CourseRepository $courseRepository): Response
+    public function new(Request $request, CourseRepository $courseRepository, BillingClient $client): Response
     {
         $course = new Course();
         $form = $this->createForm(CourseType::class, $course);
@@ -80,8 +82,27 @@ class CourseController extends AbstractController
                     'form' => $form,
                 ]);
             }
-            $courseRepository->add($course);
-            return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
+            $courseDto = new CourseNewDto();
+            $courseDto->code = $form->get('code')->getData();
+            $courseDto->type = $form->get('type')->getData();
+            $courseDto->title = $form->get('name')->getData();
+            $courseDto->price = $form->get('price')->getData();
+            try {
+                $responce = $client->newCourse($this->getUser(), $courseDto);
+                if (isset($responce['success'])) {
+                    $courseRepository->add($course);
+                    return $this->redirectToRoute(
+                        'app_course_show',
+                        ['id' => $course->getId()],
+                        Response::HTTP_SEE_OTHER
+                    );
+                }
+            } catch (BillingUnavailableException $exception) {
+                return $this->renderForm('course/new.html.twig', [
+                    'course' => $course,
+                    'form' => $form,
+                ]);
+            }
         }
 
         return $this->renderForm('course/new.html.twig', [
@@ -123,12 +144,47 @@ class CourseController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_course_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Course $course, CourseRepository $courseRepository): Response
-    {
-        $form = $this->createForm(CourseType::class, $course);
+    public function edit(
+        Request $request,
+        Course $course,
+        CourseRepository $courseRepository,
+        BillingClient $client
+    ): Response {
+        try {
+            $courseFromBilling = $client->getCourseByCode($course->getCode());
+        } catch (BillingUnavailableException $exception) {
+            throw new \RuntimeException($exception);
+        }
+        $form = $this->createForm(
+            CourseType::class,
+            $course,
+            ['price' => (float)$courseFromBilling['price'], 'type' => $courseFromBilling['type']]
+        );
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
+            if ($courseRepository->findOneBy(['code' => $course->getCode()])) {
+                $courseDto = new CourseNewDto();
+                $courseDto->code = $form->get('code')->getData();
+                $courseDto->type = $form->get('type')->getData();
+                $courseDto->title = $form->get('name')->getData();
+                $courseDto->price = $form->get('price')->getData();
+                try {
+                    $responce = $client->editCourse($this->getUser(), $courseDto, $course->getCode());
+                    if (isset($responce['success'])) {
+                        $courseRepository->add($course);
+                        return $this->redirectToRoute(
+                            'app_course_show',
+                            ['id' => $course->getId()],
+                            Response::HTTP_SEE_OTHER
+                        );
+                    }
+                } catch (BillingUnavailableException $exception) {
+                    return $this->renderForm('course/new.html.twig', [
+                        'course' => $course,
+                        'form' => $form,
+                    ]);
+                }
+            }
             $courseRepository->add($course);
             return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
         }

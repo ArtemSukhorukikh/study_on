@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Dto\CourseNewDto;
 use App\DTO\UserAuthDto;
 use App\DTO\UserCurrentDto;
 use App\Exception\BillingUnavailableException;
@@ -248,5 +249,59 @@ class BillingClient
         }
 
         return json_decode($res, true);
+    }
+
+    public function newCourse(User $user, CourseNewDto $courseNewDto) {
+        $data = $this->serializer->serialize($courseNewDto, 'json');
+        $ch = curl_init($_ENV['BILLING_ADDRES'] . 'api/v1/courses/');
+        $options = [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $user->getApiToken()
+            ]
+        ];
+        curl_setopt_array($ch, $options);
+        $res = curl_exec($ch);
+
+
+        if ($res === false) {
+            throw new BillingUnavailableException('Ошибка со стороны сервера');
+        }
+        curl_close($ch);
+        $result = json_decode($res, true);
+        if (isset($result['errors'])) {
+            throw new BillingUnavailableException(json_encode($result['errors']));
+        }
+        return $result;
+    }
+
+    public function editCourse(User $user, CourseNewDto $courseNewDto, $courseCode) {
+        $data = $this->serializer->serialize($courseNewDto, 'json');
+        $ch = curl_init($_ENV['BILLING_ADDRES'] . 'api/v1/courses/' . $courseCode);
+        $options = [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $user->getApiToken()
+            ]
+        ];
+        curl_setopt_array($ch, $options);
+        $res = curl_exec($ch);
+
+
+        if ($res === false) {
+            throw new BillingUnavailableException('Ошибка со стороны сервера');
+        }
+        curl_close($ch);
+        $result = json_decode($res, true);
+        if (isset($result['errors'])) {
+            throw new BillingUnavailableException(json_encode($result['errors']));
+        }
+        return $result;
     }
 }
