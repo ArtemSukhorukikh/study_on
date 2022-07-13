@@ -6,9 +6,11 @@ use App\Entity\Course;
 use App\Entity\Lesson;
 use App\Form\LessonType;
 use App\Repository\LessonRepository;
+use App\Service\BillingClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/lessons')]
@@ -47,8 +49,15 @@ class LessonController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_lesson_show', methods: ['GET'])]
-    public function show(Lesson $lesson): Response
+    public function show(Lesson $lesson, BillingClient $client): Response
     {
+        $transaction = $client->getTransactions(
+            ['type' => 'payment', 'course_code' => $lesson->getCourse()->getCode(), 'skip_expired' => true],
+            $this->getUser()->getApiToken()
+        );
+        if (!$transaction) {
+            throw new HttpException(Response::HTTP_NOT_ACCEPTABLE, 'У Вас нет доступа к данному курсу');
+        }
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
         ]);

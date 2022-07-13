@@ -10,4 +10,6 @@ class UserAuthDto
     public string $token;
 
     public array $roles;
+
+    public string $refresh_token;
 }

@@ -5,7 +5,7 @@ namespace App\Tests;
 use App\DataFixtures\CourseFixtures;
 use App\Entity\Course;
 use App\Tests\AbstractTest;
-use Symfony\Component\HttpFoundation\Response;
+use App\Tests\Mock\BillingClientMock;
 
 class CourseTest extends AbstractTest
 {
@@ -18,9 +18,50 @@ class CourseTest extends AbstractTest
         $this->assertResponseOk();
     }
 
-    public function testCreatingCourse(): void
+    public function login() {
+        $client = AbstractTest::getClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            'App\Service\BillingClient', 
+            new BillingClientMock()
+        );
+        $crawler = $client->request('GET', '/login');
+        $this->assertResponseOk();
+        $buttonCrawlerNode = $crawler->selectButton('Вход');
+        $form = $buttonCrawlerNode->form();
+        $client->submit(
+            $form,
+            ['email' => 'test@mail.com', 'password' => 'test']
+        );
+        $crawler = $client->followRedirect();
+        $crawler = $client->request('GET', '/courses/');
+        return $client;
+    }
+
+    public function testLogin(): void
     {
         $client = AbstractTest::getClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            'App\Service\BillingClient', 
+            new BillingClientMock()
+        );
+        $crawler = $client->request('GET', '/login');
+        $this->assertResponseOk();
+        $buttonCrawlerNode = $crawler->selectButton('Вход');
+        $form = $buttonCrawlerNode->form();
+        $client->submit(
+            $form,
+            ['email' => 'test@mail.com', 'password' => 'test']
+        );
+        $crawler = $client->followRedirect();
+        $crawler = $client->request('GET', '/courses/');
+        $this->assertResponseOk();
+    }
+
+    public function testCreatingCourse(): void
+    {
+        $client = $this->login();
         $crawler = $client->request('GET', '/courses/new');
         $buttonCrawlerNode = $crawler->selectButton('Сохранить');
         $form = $buttonCrawlerNode->form();
@@ -41,7 +82,7 @@ class CourseTest extends AbstractTest
 
     public function testCountCourses(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $crawler = $client->request('GET', '/courses/');
         $countCourses = 3;
         self::assertCount($countCourses, $crawler->filter('.card-body'));
@@ -49,7 +90,7 @@ class CourseTest extends AbstractTest
 
     public function testCoursesPagesSuccessful(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
         $coursesAll = $courseRepository->findAll();
         foreach ($coursesAll as $course) {
@@ -64,7 +105,7 @@ class CourseTest extends AbstractTest
 
     public function testLessonsCount(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
         $coursesAll = $courseRepository->findAll();
         self::assertNotEmpty($coursesAll);
@@ -77,7 +118,7 @@ class CourseTest extends AbstractTest
 
     public function testValidationCodeCourse(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $crawler = $client->request('GET', '/courses/new');
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
         $coutseCount = $this->count($courseRepository->findAll());
@@ -98,7 +139,7 @@ class CourseTest extends AbstractTest
 
     public function testValidationCourse(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $crawler = $client->request('GET', '/courses/new');
         $buttonCrawlerNode = $crawler->selectButton('Сохранить');
         $form = $buttonCrawlerNode->form();
@@ -150,7 +191,7 @@ class CourseTest extends AbstractTest
 
     public function testWithBlankFieldsCourse(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $crawler = $client->request('GET', '/courses/new');
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
         $coutseCount = $this->count($courseRepository->findAll());
@@ -193,7 +234,7 @@ class CourseTest extends AbstractTest
 
     public function testDeleteCourse(): void
     {
-        $client = self::getClient();
+        $client = $this->login();
 
         $crawler = $client->request('GET', '/courses/');
         $this->assertResponseOk();
@@ -217,7 +258,7 @@ class CourseTest extends AbstractTest
 
     public function testEditCourse(): void
     {
-        $client = self::getClient();
+        $client = $this->login();
 
         $crawler = $client->request('GET', '/courses/');
         $this->assertResponseOk();

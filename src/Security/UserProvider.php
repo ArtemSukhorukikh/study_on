@@ -2,7 +2,9 @@
 
 namespace App\Security;
 
+use App\Exception\BillingUnavailableException;
 use App\Service\BillingClient;
+use App\Service\DecodeJWTToken;
 use DateInterval;
 use DateTime;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -15,10 +17,12 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
     private BillingClient $billingClient;
+    public DecodeJWTToken $decodeJWTToken;
 
-    public function __construct(BillingClient $client)
+    public function __construct(BillingClient $client, DecodeJWTToken $decodeJWTToken)
     {
         $this->billingClient = $client;
+        $this->decodeJWTToken = $decodeJWTToken;
     }
 
     /**
@@ -67,6 +71,18 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
     {
         if (!$user instanceof User) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
+        }
+        $tokenDecoded = $this->decodeJWTToken->getJWT($user->getApiToken());
+        $tokenExp = (new DateTime())->setTimestamp($tokenDecoded['exp']);
+        $endTime = (new DateTime())->add(new \DateInterval('PT5M'));
+        if ($endTime > $tokenExp) {
+            try {
+                $refreshInfo = $this->billingClient->refreshToken($user->getRefreshToken());
+                $user->setApiToken($refreshInfo['token']);
+                $user->setRefreshToken($refreshInfo['refresh_token']);
+            } catch (BillingUnavailableException $exception) {
+                throw new \Exception($exception->getMessage());
+            }
         }
         return $user;
         // Return a User object after making sure its data is "fresh".

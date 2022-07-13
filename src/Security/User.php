@@ -17,6 +17,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     private $balance;
 
+    private $refreshToken;
+
+    public function getRefreshToken()
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(string $refreshToken): self
+    {
+        $this->refreshToken = $refreshToken;
+        return $this;
+    }
+
     public function getEmail(): ?string
     {
         return $this->email;

@@ -10,9 +10,24 @@
                 <div class="col mb-2">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">{{ course.name }}</h5>
-                            <p class="card-text">{{ course.description }}</p>
-                            <a class="card-link" href="{{ path('app_course_show', {'id': course.id}) }}">Пройти</a>
+                            <div class="d-flex flex-row row-cols-2">
+                                <h5 class="card-title">{{ course.course.name }}</h5>
+                                {% if course.accessInfo['type'] == 'free' %}
+                                    <span class="badge rounded-pill bg-primary w-50 pt-2">Бесплатно</span>
+                                {% elseif course.accessInfo['type'] == 'rent' and course.transaction == null %}
+                                    <span class="badge rounded-pill bg-primary w-50 pt-2">Арендовать за {{ course.accessInfo['price'] }}</span>
+                                {% elseif course.accessInfo['type'] == 'rent' and course.transaction != null  %}
+                                    <span class="badge rounded-pill bg-primary w-50 pt-2">Доступен до {{ course.transaction['expires_at'] }}</span>
+                                {% elseif course.accessInfo['type'] == 'buy' and course.transaction == null %}
+                                    <span class="badge rounded-pill bg-primary w-50 pt-2">Получите доступ за {{ course.accessInfo['price'] }}</span>
+                                {% elseif course.accessInfo['type'] == 'buy' and course.transaction != null  %}
+                                    <span class="badge rounded-pill bg-primary w-50 pt-2">Доступен }}</span>
+                                {% endif %}
+                            </div>
+
+                            <p class="card-text">{{ course.course.description }}</p>
+                            <a class="card-link" href="{{ path('app_course_show', {'id': course.course.id}) }}">Пройти</a>
+
                         </div>
                     </div>
                 </div>
@@ -20,7 +35,8 @@
                 <h6>Нет записей</h6>
             {% endfor %}
         </div>
-
+        {% if is_granted('ROLE_SUPER_ADMIN') %}
         <a class="btn mt-3 btn-outline-secondary" href="{{ path('app_course_new') }}">Создать новый курс</a>
+        {% endif %}
     </div>
 {% endblock %}

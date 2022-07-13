@@ -5,12 +5,33 @@ namespace App\Tests;
 use App\DataFixtures\CourseFixtures;
 use App\Entity\Course;
 use App\Entity\Lesson;
+use App\Tests\Mock\BillingClientMock;
 
 class LessonTest extends AbstractTest
 {
+    public function login() {
+        $client = AbstractTest::getClient();
+        $client->disableReboot();
+        $client->getContainer()->set(
+            'App\Service\BillingClient', 
+            new BillingClientMock()
+        );
+        $crawler = $client->request('GET', '/login');
+        $this->assertResponseOk();
+        $buttonCrawlerNode = $crawler->selectButton('Вход');
+        $form = $buttonCrawlerNode->form();
+        $client->submit(
+            $form,
+            ['email' => 'test@mail.com', 'password' => 'test']
+        );
+        $crawler = $client->followRedirect();
+        $crawler = $client->request('GET', '/courses/');
+        return $client;
+    }
+
     public function testNewLesson(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
         $lesssomRepository = self::getEntityManager()->getRepository(Lesson::class);
         $course = $courseRepository->findOneBy([]);
@@ -34,7 +55,7 @@ class LessonTest extends AbstractTest
 
     public function testEditLesson(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $lessonRepository = self::getEntityManager()->getRepository(Lesson::class);
         $crawler = $client->request('GET', '/lessons/' . $lessonRepository->findAll()[0]->getId() . '/edit');
         $this->assertResponseOk();
@@ -54,7 +75,7 @@ class LessonTest extends AbstractTest
 
     public function testDeleteLesson(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $lessonRepository = self::getEntityManager()->getRepository(Lesson::class);
         $countOld = count($lessonRepository->findAll());
         $crawler = $client->request('GET', '/lessons/' . $lessonRepository->findAll()[0]->getId());
@@ -68,7 +89,7 @@ class LessonTest extends AbstractTest
 
     public function testEmptyLesson(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
         $lessonRepository = self::getEntityManager()->getRepository(Lesson::class);
         $countOld = $this->count($lessonRepository->findAll());
@@ -113,7 +134,7 @@ class LessonTest extends AbstractTest
 
     public function testValidateLesson(): void
     {
-        $client = AbstractTest::getClient();
+        $client = $this->login();
         $courseRepository = self::getEntityManager()->getRepository(Course::class);
         $lessonRepository = self::getEntityManager()->getRepository(Lesson::class);
         $countOld = $this->count($lessonRepository->findAll());

@@ -1,23 +1,73 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ course.name }}{% endblock %}
+{% block title %}{{ course.course.name }}{% endblock %}
 
 {% block body %}
-    <h1 class="course-name mb-3">{{ course.name }}</h1>
+    <h1 class="mb-3">{{ course.course.name }}</h1>
     <p class="course-description">
-        {{ course.description }}
+        {{ course.course.description }}
     </p>
+    {% if course.accessInfo != null %}
+        {% if course.accessInfo['type'] != 'free' and course.transaction == null  %}
+            {% if course.accessInfo['type'] == 'rent' %}
+                <p>Арендуйте курс сейчас. Стоимость аренды: {{ course.accessInfo['price'] }}</p>
+                <a data-bs-toggle="modal" data-bs-target="#myModal" id="myInput" class="btn btn-outline-secondary mt-1 mx-2" >Арендовать</a>
+            {% else %}
+                <p>Получите полный и постоянный доступ к курсу. Стоимость аренды: {{ course.accessInfo['price'] }}</p>
+                <a data-bs-toggle="modal" data-bs-target="#myModal" id="myInput" class="btn btn-outline-secondary mt-1 mx-2" >Купить</a>
+            {% endif %}
+        {% endif %}
+        {% if course.accessInfo['type'] == 'rent' and course.transaction != null %}
+            <p>Курс доступен до: {{ course.transaction['expires_at'] }}</p>
+            {% for message in app.flashes('notice') %}
+                <div class="flash-notice">
+                    <div class="alert alert-success" role="alert">
+                        {{ message }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% elseif course.accessInfo['type'] == 'buy' and course.transaction != null %}
+            <p>Вам доступен полный доступ к курсу</p>
+        {% endif %}
+    {% endif %}
     <h2>Уроки</h2>
     <ul>{% for lesson in lessons %}
             <li class="mt-2">{{lesson.number}}<a href="{{ path('app_lesson_show', {'id': lesson.id}) }}">{{ lesson.name }}</a></li>
         {% endfor %}</ul>
     <div class="d-flex flex-row">
-        <a class="btn btn-outline-secondary mt-3 mx-2" href="{{ path('app_course_index') }}">Вернутся к списку курсов</a>
+        <a class="btn btn-outline-secondary mt-3 mx-2"  href="{{ path('app_course_index') }}">Вернутся к списку курсов</a>
         {% if is_granted('ROLE_SUPER_ADMIN')%}
         <a class="btn btn-outline-secondary mt-3 mx-2 course-edit" href="{{ path('app_course_edit', {'id': course.id}) }}">Изменить</a>
         <a class="btn btn-outline-secondary mt-3 mx-2" href="{{ path('app_lesson_new', {'course': course.id}) }}">Добавить урок</a>
         {{ include('course/_delete_form.html.twig') }}
         {% endif %}
     </div>
+    <div>
 
+        <div id="myModal" class="modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Оплата доступа к курсу</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Вы уверены, что хотите оплатить данный курс?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                        <a href="{{ path('app_course_pay', {'id' : course.course.id}) }}" class="btn btn-primary">Да</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+     <script>
+         const myModal = document.getElementById('myModal');
+         const myInput = document.getElementById('myInput');
+
+         myModal.addEventListener('shown.bs.modal', function () {
+             myInput.focus()
+         })
+     </script>
 {% endblock %}
