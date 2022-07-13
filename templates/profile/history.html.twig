@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ProfileController!{% endblock %}
+
+{% block body %}
+    <div class="container-md">
+        <h3>История операций</h3>
+        <div>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Тип</th>
+                    <th scope="col">Значение</th>
+                    <th scope="col">Дата</th>
+                    <th scope="col">Курс</th>
+                    <th scope="col">Дата окончания аренды</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <th scope="row">
+                        {% if transaction['type'] == 'deposit' %}
+                            Пополнение баланса
+                        {% else %}
+                            Оплата
+                        {% endif %}
+                    </th>
+                    <td>{{ transaction['value'] }}</td>
+                    <td>{{ transaction['created_at'] }}</td>
+                    <td>
+                        {% if transaction['course'] is not null %}
+                            <a class="fs-5" href="{{ path('app_course_show', {'id': transaction['course'].id}) }}">Курс {{ transaction['course'].name }}</a><br/>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if transaction['expires_at'] is not null %}
+                            {{ transaction['expires_at'] }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
