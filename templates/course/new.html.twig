@@ -4,7 +4,15 @@
 
 {% block body %}
     <h1>Создание нового курса</h1>
-
+    {% if errors is defined %}
+    {% for error in errors %}
+        <div class="flash-notice">
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        </div>
+    {% endfor %}
+    {% endif %}
     {{ include('course/_form.html.twig') }}
 
     <a class="mt-5 btn btn-outline-secondary" href="{{ path('app_course_index') }}">Вернутся к списку курсов</a>

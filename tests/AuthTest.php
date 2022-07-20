@@ -4,6 +4,7 @@ namespace App\Tests;
 
 use App\DataFixtures\CourseFixtures;
 use App\Entity\Course;
+use App\Service\BillingClient;
 use App\Tests\AbstractTest;
 use App\Tests\Mock\BillingClientMock;
 
@@ -14,18 +15,17 @@ class AuthTest extends AbstractTest
         $client = AbstractTest::getClient();
         $client->disableReboot();
         $client->getContainer()->set(
-            'App\Service\BillingClient', 
+            'App\Service\BillingClient',
             new BillingClientMock()
         );
         $crawler = $client->request('GET', '/login');
         $this->assertResponseOk();
         $buttonCrawlerNode = $crawler->selectButton('Вход');
         $form = $buttonCrawlerNode->form();
-        $client->submit(
-            $form,
-            ['email' => 'test@mail.com', 'password' => 'test']
-        );
-        $crawler = $client->followRedirect();
+        $form['email'] = 'test@mail.com';
+        $form['password'] = 'test';
+        $client->submit($form);
+        $client->followRedirect();
         $this->assertResponseOk();
     }
     

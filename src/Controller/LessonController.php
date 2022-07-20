@@ -55,7 +55,7 @@ class LessonController extends AbstractController
             ['type' => 'payment', 'course_code' => $lesson->getCourse()->getCode(), 'skip_expired' => true],
             $this->getUser()->getApiToken()
         );
-        if (!$transaction) {
+        if (!$transaction && !$this->isGranted('ROLE_SUPER_ADMIN')) {
             throw new HttpException(Response::HTTP_NOT_ACCEPTABLE, 'У Вас нет доступа к данному курсу');
         }
         return $this->render('lesson/show.html.twig', [
