@@ -182,13 +182,13 @@ class CourseController extends AbstractController
                     return $this->renderForm('course/new.html.twig', [
                         'course' => $course,
                         'form' => $form,
+                        'errors' => ['Проверьте правильность данных']
                     ]);
                 }
             }
             $courseRepository->add($course);
             return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
         }
-
         return $this->renderForm('course/edit.html.twig', [
             'course' => $course,
             'form' => $form,
