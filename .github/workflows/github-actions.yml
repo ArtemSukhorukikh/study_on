@@ -1,8 +1,8 @@
-name: GitHub Actions
+name: Build App and Test
 on:
   push:
     branches:
-      - 'main'
+      - 'branch_for_ci'
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
