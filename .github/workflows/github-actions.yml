@@ -4,7 +4,6 @@ jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
-      - run: cd ..
-      - run: cd ..
+      - run: echo $HOME
       - run: docker-compose up
       - run: docker-compose exec php bin/phpunit
